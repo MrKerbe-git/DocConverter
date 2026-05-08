@@ -54,6 +54,7 @@ jobs:
           pyinstaller
           --windowed
           --name DocConverter
+          --collect-all PyQt6
           --hidden-import PyQt6.sip
           --hidden-import PyQt6.QtPrintSupport
           main.py
