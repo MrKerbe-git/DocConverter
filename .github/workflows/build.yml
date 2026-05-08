@@ -1,0 +1,69 @@
+name: Build Installers
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:   # GitHub UI에서 수동 실행 가능
+
+jobs:
+  # ── Windows .exe 빌드 ───────────────────────────────────────────────────────
+  build-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install PyQt6 pyinstaller
+
+      - name: Build .exe
+        run: >
+          pyinstaller
+          --onefile
+          --windowed
+          --name DocConverter
+          --hidden-import PyQt6.sip
+          --hidden-import PyQt6.QtPrintSupport
+          main.py
+
+      - name: Upload Windows artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocConverter-Windows
+          path: dist/DocConverter.exe
+          retention-days: 30
+
+  # ── macOS .app 빌드 ─────────────────────────────────────────────────────────
+  build-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install PyQt6 pyinstaller
+
+      - name: Build .app
+        run: >
+          pyinstaller
+          --windowed
+          --name DocConverter
+          --hidden-import PyQt6.sip
+          --hidden-import PyQt6.QtPrintSupport
+          main.py
+
+      - name: Zip .app bundle
+        run: cd dist && zip -r DocConverter-macOS.zip DocConverter.app
+
+      - name: Upload macOS artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DocConverter-macOS
+          path: dist/DocConverter-macOS.zip
+          retention-days: 30
